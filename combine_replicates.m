@@ -25,6 +25,7 @@ selected = [data_.Properties.VariableNames{1:2} , selected'];
 columnsToSelect = ismember(selected, data_.Properties.VariableNames);
 multi_icotops = [false; false; ismissing(icotopselection{:, 3})==0];
 multi_icotops_in_selected = multi_icotops(columnsToSelect);
+lod_filter = icotopselection{:, 4};
 %%
 %looping through each sample and merging all replicates for that sample
 for g = 1:length(groups)
@@ -33,8 +34,13 @@ for g = 1:length(groups)
     for i = 1: length(file_list)
         filepath = append('replicates\', file_list{i});
         tables = readtable(filepath, 'VariableNamingRule','preserve');
+        %removing values less than lod_filter for each column
+        replicate_data = tables{:, 3:end};
+        mask = replicate_data < lod_filter';
+        replicate_data(mask) = NaN;
+        tables{:, 3:end} = replicate_data;
+        %extracting the selected columns
         tables = tables(:, columnsToSelect);
-        
         data = [data; tables{:, :}];
     
     end
